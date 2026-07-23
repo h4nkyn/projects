@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clock</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: #0b0b0f;
+    color: #f5f5f7;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+  }
+  .clock {
+    text-align: center;
+  }
+  .time {
+    font-size: min(28vw, 34vh);
+    font-weight: 200;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .meridiem {
+    font-size: min(6vw, 7vh);
+    font-weight: 300;
+    color: #9a9aa2;
+    margin-top: 1.5vh;
+    letter-spacing: 0.35em;
+  }
+  .date {
+    font-size: min(3.2vw, 3.6vh);
+    font-weight: 300;
+    color: #6e6e76;
+    margin-top: 3vh;
+    letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+  <main class="clock">
+    <div class="time" id="time">5:59</div>
+    <div class="meridiem" id="meridiem">AM</div>
+    <div class="date" id="date"></div>
+  </main>
+<script>
+  const timeEl = document.getElementById('time');
+  const dateEl = document.getElementById('date');
+
+  function renderDate() {
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString(undefined, {
+      weekday: 'long', month: 'long', day: 'numeric'
+    });
+  }
+  renderDate();
+  setInterval(renderDate, 60000);
+
+  let pending = null;
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' || pending) return;
+    e.preventDefault();
+    pending = setTimeout(() => {
+      timeEl.textContent = '6:00';
+    }, 10000);
+  });
+</script>
+</body>
+</html>
