@@ -8,7 +8,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
   body {
-    background: #0b0b0f;
+    background: #060608;
     color: #f5f5f7;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     display: flex;
@@ -17,40 +17,110 @@
     overflow: hidden;
     user-select: none;
   }
-  .clock {
-    text-align: center;
+  .clock { text-align: center; }
+  .cards {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: min(4vw, 5vh);
+    perspective: 1600px;
   }
-  .time {
-    font-size: min(28vw, 34vh);
-    font-weight: 200;
-    letter-spacing: 0.02em;
-    line-height: 1;
+  .card {
+    position: relative;
+    width: min(42vw, 62vh);
+    height: min(38vw, 56vh);
+    font-size: min(32vw, 47vh);
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+  .face, .flap {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    overflow: hidden;
+    background: #17171c;
+  }
+  .face span, .flap span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: min(38vw, 56vh);
+    line-height: min(38vw, 56vh);
+    text-align: center;
+    display: block;
+  }
+  .top, .flap-top {
+    top: 0;
+    border-radius: min(1.8vw, 2.4vh) min(1.8vw, 2.4vh) 0 0;
+    border-bottom: 2px solid #060608;
+  }
+  .top span, .flap-top span { top: 0; }
+  .bottom, .flap-bottom {
+    bottom: 0;
+    border-radius: 0 0 min(1.8vw, 2.4vh) min(1.8vw, 2.4vh);
+    background: #1c1c22;
+  }
+  .bottom span, .flap-bottom span { bottom: 0; }
+  .flap {
+    z-index: 2;
+    backface-visibility: hidden;
+  }
+  .flap-top {
+    transform-origin: bottom;
+    background: #17171c;
+  }
+  .flap-bottom {
+    transform-origin: top;
+    transform: rotateX(90deg);
+  }
+  .flap-top.animate {
+    animation: fold-down 0.3s ease-in forwards;
+  }
+  .flap-bottom.animate {
+    animation: fold-up 0.3s 0.3s ease-out forwards;
+  }
+  @keyframes fold-down {
+    from { transform: rotateX(0deg); }
+    to   { transform: rotateX(-90deg); }
+  }
+  @keyframes fold-up {
+    from { transform: rotateX(90deg); }
+    to   { transform: rotateX(0deg); }
   }
   .meridiem {
-    font-size: min(6vw, 7vh);
-    font-weight: 300;
+    font-size: min(5.5vw, 7vh);
+    font-weight: 400;
     color: #9a9aa2;
-    margin-top: 1.5vh;
+    margin-top: min(3vw, 4vh);
     letter-spacing: 0.35em;
   }
   .date {
-    font-size: min(3.2vw, 3.6vh);
+    font-size: min(2.6vw, 3.2vh);
     font-weight: 300;
     color: #6e6e76;
-    margin-top: 3vh;
+    margin-top: min(1.5vw, 2vh);
     letter-spacing: 0.08em;
   }
 </style>
 </head>
 <body>
   <main class="clock">
-    <div class="time" id="time">5:59</div>
-    <div class="meridiem" id="meridiem">AM</div>
+    <div class="cards">
+      <div class="card" id="hours">
+        <div class="face top"><span>05</span></div>
+        <div class="face bottom"><span>05</span></div>
+      </div>
+      <div class="card" id="minutes">
+        <div class="face top"><span>59</span></div>
+        <div class="face bottom"><span>59</span></div>
+      </div>
+    </div>
+    <div class="meridiem">AM</div>
     <div class="date" id="date"></div>
   </main>
 <script>
-  const timeEl = document.getElementById('time');
   const dateEl = document.getElementById('date');
 
   function renderDate() {
@@ -62,12 +132,43 @@
   renderDate();
   setInterval(renderDate, 60000);
 
+  function flipTo(card, newVal) {
+    const topFace = card.querySelector('.top span');
+    const bottomFace = card.querySelector('.bottom span');
+    const oldVal = topFace.textContent;
+    if (oldVal === newVal) return;
+
+    const flapTop = document.createElement('div');
+    flapTop.className = 'flap flap-top';
+    flapTop.innerHTML = '<span>' + oldVal + '</span>';
+
+    const flapBottom = document.createElement('div');
+    flapBottom.className = 'flap flap-bottom';
+    flapBottom.innerHTML = '<span>' + newVal + '</span>';
+
+    card.appendChild(flapTop);
+    card.appendChild(flapBottom);
+    topFace.textContent = newVal;
+
+    requestAnimationFrame(() => {
+      flapTop.classList.add('animate');
+      flapBottom.classList.add('animate');
+    });
+
+    flapBottom.addEventListener('animationend', () => {
+      bottomFace.textContent = newVal;
+      flapTop.remove();
+      flapBottom.remove();
+    });
+  }
+
   let pending = null;
   document.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' || pending) return;
     e.preventDefault();
     pending = setTimeout(() => {
-      timeEl.textContent = '6:00';
+      flipTo(document.getElementById('hours'), '06');
+      flipTo(document.getElementById('minutes'), '00');
     }, 10000);
   });
 </script>
